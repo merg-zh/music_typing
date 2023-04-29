@@ -13,9 +13,11 @@ root = None
 kasi_list = None
 def Play(url, title):
     global kasi_list
-    res = requests.get(url)
+    res = requests.get("https://utaten.com" + url)
     soup = bsp4(res.text, "html.parser")
-    elem = str(soup.find("p", id="Lyric"))[14:-30]
+    elem = str(soup.find("div", class_="hiragana"))
+    print(elem)
+    exit()
     kasi_list = elem.split('<br/>')
     kasi_list = [s for s in kasi_list if s]
 

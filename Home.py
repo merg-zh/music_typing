@@ -16,18 +16,17 @@ def Search(btn_list, frame):
     for i in range(len(btn_list)):
         btn_list[i].destroy()
     tt = title_text.get()
-    url = 'https://search2.j-lyric.net/index.php?ex=on&ct=2&ca=2&cl=2&kt='+ tt +'&search=検索'
+    url = 'https://utaten.com/search?layout_search_text='+ tt +'&layout_search_type=title'
     res = requests.get(url)
     soup = bsp4(res.text, "html.parser")
-    elements = soup.find_all("div", class_="bdy")
+    element = soup.find("main")
+    elements = element.find_all("p", class_="searchResult__title")
+    elements2 = element.find_all("p", class_="searchResult__name")
     for i in range(len(elements)):
-        element = elements[i].find("a" ,href=re.compile("j-lyric.net/artist/"))
-        if element == None:
-            continue
-        k_u = str(element.get('href'))
-        t_t = str(element.text)
+        k_u = str(elements[i].a.get('href'))
+        t_t = str(elements[i].a.text).replace(" ", "").replace('\n', '')
         btn = ttk.Button(frame.scrollable_frame, 
-                         text= element.text + ' : ' + str(element.get('title'))[0:-(len(str(element.text)) + 4)],
+                         text= t_t + str(elements2[i].a.text).replace(" ", ""),
                          padding=(5,10),
                          width=60,
                          command=lambda:Open_Song(k_u, t_t))

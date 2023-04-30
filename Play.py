@@ -1,10 +1,12 @@
 from tkinter import *
 from tkinter import ttk
+import tkinter as tk
 import requests
 from bs4 import BeautifulSoup as bsp4
 import re
 import regex
 import jaconv
+import datetime
 
 class Play_w:
     def __init__(self, url, title):
@@ -59,6 +61,11 @@ class Play_w:
             "minus":"-","apostrophe":"'","ampersand":"&","numbersign":"#",
             "dollar":"$","percent":"%","equal":"=","asciitilde":"~"
         }
+
+        self.table = str.maketrans({
+            v: '' for v in '\u3000 \x0c\x0b\t\r'
+        })
+
         self.start_flag = False
         self.finish_flag = False
         self.ctn = 3
@@ -69,6 +76,7 @@ class Play_w:
         self.kasi_list = []
         self.now_str = None
         self.typctn = 0
+        self.start_time = 0
 
         res = requests.get("https://utaten.com" + url)
         soup = bsp4(res.text, "html.parser")
@@ -87,6 +95,8 @@ class Play_w:
                     continue
     
             if elems[i] == "<br>":
+                kari[0] = kari[0].translate(self.table)
+                kari[1] = kari[1].translate(self.table)
                 kari[2] = self.Hira_to_Roma(kari[2])
                 self.kasi_list.append(kari)
                 kari = ["", "", ""]
@@ -109,9 +119,9 @@ class Play_w:
         self.root.geometry("1000x400")
         self.root.minsize(width=800, height=400)
        
-        self.label = ttk.Label(self.root, text="スペースキーでスタート", font=("", 30))
-        self.label2 = ttk.Label(self.root, font=("", 25))
-        self.label3 = ttk.Label(self.root, text="\n", font=("", 20))
+        self.label = ttk.Label(self.root, text="スペースキーでスタート", font=("", 30), anchor=tk.CENTER)
+        self.label2 = ttk.Label(self.root, font=("", 25), anchor=tk.CENTER)
+        self.label3 = ttk.Label(self.root, text="\n", font=("", 20), anchor=tk.CENTER)
     
         self.label.pack()
         self.label2.pack()
@@ -125,12 +135,10 @@ class Play_w:
         words_pat = re.compile(r'ゃ|ゅ|ょ|ぁ|ぃ|ぅ|ぇ|ぉ')
 
         st = st.replace("ー","-").replace("☆", "").replace("(","").replace(")","").replace("「","") \
-            .replace("」","").replace("、", ",").replace("・","").replace("…","...").replace("∽","") \
+            .replace("」","").replace("、", ",").replace("・",".").replace("…","...").replace("∽","") \
             .replace("。",".").replace("‥","..")
-        table = str.maketrans({
-            v: '' for v in '\u3000 \x0c\x0b\t\r'
-        })
-        st = st.translate(table)
+        
+        st = st.translate(self.table)
         
         st = st.lower()
         i = 0
@@ -183,7 +191,7 @@ class Play_w:
             self.count()
             return
         
-        if self.start_flag == False:
+        if self.start_flag == False or key == "LeftShift":
             return
         
         try:
@@ -215,23 +223,21 @@ class Play_w:
         if self.ctn == -1:
             self.Show()
             self.ctn = 0
-            self.root.after(1000, self.count2)
+            dt = datetime.datetime.now()
+            self.start_time = dt.hour * 60 * 60 + dt.minute * 60 + dt.second
         else:
             self.root.after(1000, self.count)
-    
-    def count2(self):
-        if self.finish_flag:
-            self.label2 = "1秒あたりのタイプ数 : " + str(int(self.typctn / self.ctn)) + "文字"
-        else:
-            self.ctn += 1
-            self.root.after(1000, self.count2)
     
     def Show(self):        
         if len(self.kasi_list) == 0:
             self.label["text"] = "終了"
-            self.label2["text"] = ""
+            dt = datetime.datetime.now()
+            now_time = dt.hour * 60 * 60 + dt.minute * 60 + dt.second
+            heikin = int(self.typctn / (now_time - self.start_time) * 10) / 10
+            self.label2["text"] = "1秒あたり - " + str(heikin) + "文字"
             self.finish_flag = True
         else:
-            self.label["text"] = self.kasi_list[0][0]
-            self.label2["text"] = self.kasi_list[0][1]
+            self.label["text"] = "\n" + self.kasi_list[0][0]
+            self.label2["text"] = "\n" + self.kasi_list[0][1]
             self.now_str = self.kasi_list[0][2]
+            print(self.kasi_list[0][2])

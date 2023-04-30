@@ -35,7 +35,30 @@ class Play_w:
                     "ぴゃ":"pya","ぴゅ":"pyu","ぴょ":"pyo",
                     "みゃ":"mya","みゅ":"myu","みょ":"myo",
                     "りゃ":"rya","りゅ":"ryu","りょ":"ryo",
-                    "ぁ":"xa","ぃ":"xi","ぅ":"xu","ぇ":"xe","ぉ":"xo"}
+                    "ぁ":"xa","ぃ":"xi","ぅ":"xu","ぇ":"xe","ぉ":"xo",
+                    "ふゃ":"fya","ふゅ":"fyu","ふょ":"fyo",
+                    "ふぁ":"fa","ふぃ":"fi","ふぇ":"fe","ふぉ":"fo"}
+        
+        self.rossita_to_roma={"А":"a","а":"a","Б":"b","б":"b","В":"v",
+                              "в":"v","Г":"g","г":"g","Д":"d","д":"d",
+                              "Е":"e","е":"e","Ж":"zh","ж":"zh","З":"z",
+                              "з":"z","И":"i","и":"i","Й":"y","й":"y",
+                              "К":"k","к":"k","Л":"l","л":"l",
+                              "М":"m","м":"m","Н":"n","н":"n","О":"o",
+                              "о":"o","П":"p","п":"p","Р":"r","р":"r",
+                              "С":"s","с":"s","Т":"t","т":"t","У":"u",
+                              "у":"u","Ф":"f","ф":"f","Х":"kh","х":"kh",
+                              "Ц":"ts","ц":"ts","Ч":"ch","ч":"ch","Ш":"sh",
+                              "ш":"sh","Щ":"shch","щ":"shch","Ь":"","ь":"",
+                              "Ю":"yu","ю":"yu","Я":"ya","я":"ya",
+                              "ゔ":"vu"
+                             }
+        
+        self.key_sp = {
+            "comma":",","exclam":"!","period":",","question":"?",
+            "minus":"-","apostrophe":"'","ampersand":"&","numbersign":"#",
+            "dollar":"$","percent":"%","equal":"=","asciitilde":"~"
+        }
         self.start_flag = False
         self.finish_flag = False
         self.ctn = 3
@@ -99,29 +122,49 @@ class Play_w:
         self.root.mainloop()
     
     def Hira_to_Roma(self, st):
-        words_pat = re.compile(r'ゃ|ゅ|ょ')
+        words_pat = re.compile(r'ゃ|ゅ|ょ|ぁ|ぃ|ぅ|ぇ|ぉ')
 
         st = st.replace("ー","-").replace("☆", "").replace("(","").replace(")","").replace("「","") \
-            .replace("」","").replace("、", ",").replace("・","")
+            .replace("」","").replace("、", ",").replace("・","").replace("…","...").replace("∽","") \
+            .replace("。",".").replace("‥","..")
         table = str.maketrans({
-            v: '' for v in '\u3000 \x0c\x0b\t'
+            v: '' for v in '\u3000 \x0c\x0b\t\r'
         })
         st = st.translate(table)
+        
+        st = st.lower()
         i = 0
         xtu = False
         while(i < len(st)):
             if self.p.fullmatch(st[i]):
+                if xtu:
+                    st = st[:i-1] + "xtu" + st[i:]
+                    xtu = False
                 i += 1
                 continue
             tu = st[i]
-            if len(st) - 1 > i:
-                if bool(words_pat.search(st[i + 1])):
-                    tu = st[i : i + 2]
             if st[i] == "っ":
                 xtu = True
                 i+=1
                 continue
-            in_t = self.H2R[tu]
+
+            if len(st) - 1 > i:
+                if bool(words_pat.search(st[i + 1])):
+                    tu = st[i : i + 2]
+            
+            try:
+                in_t = self.H2R[tu]
+            except:
+                try:
+                    if len(tu) == 2:
+                        tu = st[i]
+                        in_t = self.H2R[tu]
+                    else:
+                        in_t = self.rossita_to_roma[tu]
+                except:
+                    st = st[:i-1] + st[i+1:]
+                    i+=1
+            
             if xtu:
                 st = st[:i-1] + in_t[0] + in_t + st[i+len(tu):]
                 i += len(in_t)
@@ -131,7 +174,7 @@ class Play_w:
                 i += len(in_t)
             
 
-        return st.lower()
+        return st
 
     def Key_down(self, e):
         key = e.keysym
@@ -143,18 +186,10 @@ class Play_w:
         if self.start_flag == False:
             return
         
-        if key == "comma":
-            key = ","
-        elif key == "exclam":
-            key = "!"
-        elif key == "period":
-            key = "."
-        elif key == "question":
-            key = "?"
-        elif key =="minus":
-            key = "-"
-        elif key == "apostrophe":
-            key = "'"
+        try:
+            key = self.key_sp[key]
+        except:
+            None
         
         if  self.now_str[0] == key:
             self.typctn += 1
@@ -169,9 +204,10 @@ class Play_w:
             self.typctn += 1
             self.label3['text'] += key
             self.now_str = self.now_str[2:]
-        elif self.label3[-1] == "n" and self.label3[-2] != "n":
-            self.typctn += 1
-            self.label3['text'] += key
+        elif len(self.label3['text']) > 2:
+            if self.label3['text'][-1] == "n" and self.label3['text'][-2] != "n":
+                self.typctn += 1
+                self.label3['text'] += key
     
     def count(self):
         self.label["text"] = self.ctn

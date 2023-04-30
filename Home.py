@@ -1,9 +1,7 @@
 from tkinter import *
 from tkinter import ttk
-import tkinter as tk
 import requests
 from bs4 import BeautifulSoup as bsp4
-import re
 from Play import Play_w
 from function import ScrollableFrame
 

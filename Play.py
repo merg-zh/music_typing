@@ -1,6 +1,5 @@
 from tkinter import *
 from tkinter import ttk
-import tkinter as t
 import requests
 from bs4 import BeautifulSoup as bsp4
 import re

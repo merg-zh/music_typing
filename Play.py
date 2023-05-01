@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 import tkinter as tk
+import tkinter.font as tkFont
 import requests
 from bs4 import BeautifulSoup as bsp4
 import re
@@ -78,6 +79,9 @@ class Play_w:
         self.typctn = 0
         self.start_time = 0
 
+        self.width = 1000
+        self.height = 400
+
         res = requests.get("https://utaten.com" + url)
         soup = bsp4(res.text, "html.parser")
         elem = str(soup.find("div", class_="hiragana"))[22:-7].strip()
@@ -118,18 +122,52 @@ class Play_w:
         self.root.title(title)
         self.root.geometry("1000x400")
         self.root.minsize(width=800, height=400)
+        self.root.configure(bg="white")
+
+        self.main_font = tkFont(family = "M S ゴシック", size = 16)
+
+        self.main_frame = tk.Frame(self.root, width=800, height=200, relief=tk.SOLID, bd=2, bg="white")
+        self.main_frame.propagate(False)
        
-        self.label = ttk.Label(self.root, text="スペースキーでスタート", font=("", 30), anchor=tk.CENTER)
-        self.label2 = ttk.Label(self.root, font=("", 25), anchor=tk.CENTER)
-        self.label3 = ttk.Label(self.root, text="\n", font=("", 20), anchor=tk.CENTER)
+        self.label = ttk.Label(self.main_frame, text="スペースキーでスタート", padding=[0, 10], background="white", anchor=tk.CENTER, font=self.main_font)
+        self.label2 = ttk.Label(self.main_frame, padding=[0, 10], font=("", 25), background="white", anchor=tk.CENTER)
+        self.label3 = ttk.Label(self.root, text="\n", font=("", 20), background="white", anchor=tk.CENTER)
     
         self.label.pack()
         self.label2.pack()
         self.label3.pack()
+
+        self.main_frame.pack()
        
         self.root.bind("<KeyPress>", self.Key_down)
+        self.root.bind("<Configure>", self.Set_window_size)
         
         self.root.mainloop()
+    
+    def Set_window_size(self, event):
+        # Main Window以外のイベントは無視
+        if (event.type != 'configure') and (event.widget != self.root):
+            return
+    
+        # サイズが変わってなかった無視
+        if (event.width == self.width) and (event.height == self.height):
+            return
+    
+        # グローバル変数を更新
+        self.width = event.width
+        self.height = event.height
+
+        set_width = self.width * 0.7
+        set_height = self.height / 2
+        if set_width < 800:
+            set_width = 800
+        elif set_width > 1400:
+            set_width = 1400
+        if set_height > 300:
+            set_height = 300
+
+        self.main_frame.config(height = set_height, width = set_width)
+        return
     
     def Hira_to_Roma(self, st):
         words_pat = re.compile(r'ゃ|ゅ|ょ|ぁ|ぃ|ぅ|ぇ|ぉ')
@@ -237,7 +275,6 @@ class Play_w:
             self.label2["text"] = "1秒あたり - " + str(heikin) + "文字"
             self.finish_flag = True
         else:
-            self.label["text"] = "\n" + self.kasi_list[0][0]
-            self.label2["text"] = "\n" + self.kasi_list[0][1]
+            self.label["text"] = self.kasi_list[0][0]
+            self.label2["text"] = self.kasi_list[0][1]
             self.now_str = self.kasi_list[0][2]
-            print(self.kasi_list[0][2])

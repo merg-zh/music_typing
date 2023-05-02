@@ -29,7 +29,7 @@ class Play_w:
                     "きゃ":"kya","きゅ":"kyu","きょ":"kyo",
                     "ぎゃ":"gya","ぎゅ":"gyu","ぎょ":"gyo",
                     "しゃ":"sya","しゅ":"syu","しょ":"syo",
-                    "じゃ":"zya","じゅ":"zyu","じょ":"zyo",
+                    "じゃ":"zya","じゅ":"zyu","じょ":"zyo", "じぇ":"je",
                     "ちゃ":"tya","ちゅ":"tyu","ちょ":"tyo",
                     "ぢゃ":"dya","ぢゅ":"dyu","ぢょ":"dyo",
                     "にゃ":"nya","にゅ":"nyu","にょ":"nyo",
@@ -210,7 +210,7 @@ class Play_w:
         words_pat = re.compile(r'ゃ|ゅ|ょ|ぁ|ぃ|ぅ|ぇ|ぉ')
 
         st = st.replace("ー","-").replace("☆", "").replace("(","").replace(")","").replace("「","") \
-            .replace("」","").replace("、", ",").replace("・",".").replace("…","...").replace("∽","") \
+            .replace("」","").replace("、", ",").replace("・","").replace("…","...").replace("∽","") \
             .replace("。",".").replace("‥","..")
         
         st = st.translate(self.table)

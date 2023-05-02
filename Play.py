@@ -60,7 +60,8 @@ class Play_w:
         self.key_sp = {
             "comma":",","exclam":"!","period":",","question":"?",
             "minus":"-","apostrophe":"'","ampersand":"&","numbersign":"#",
-            "dollar":"$","percent":"%","equal":"=","asciitilde":"~"
+            "dollar":"$","percent":"%","equal":"=","asciitilde":"~",
+            "period":"."
         }
 
         self.table = str.maketrans({
@@ -79,7 +80,7 @@ class Play_w:
         self.typctn = 0
         self.start_time = 0
 
-        self.width = 1000
+        self.width = 800
         self.height = 400
 
         res = requests.get("https://utaten.com" + url)
@@ -92,12 +93,23 @@ class Play_w:
         self.p = re.compile('[\u0000-\u007F]+')
         kan = regex.compile(r'\p{Script=Han}+')
         i = 0
+        kak = False
         while i < len(elems):
             if i != 0:
                 if elems[i] == "<br>" and elems[i - 1] == "<br>":
                     i += 1
                     continue
-    
+            if "≪" in elems[i]:
+                kak = True
+                i += 1
+                continue
+            if "≫" in elems[i] and kak:
+                kak = False
+                elems[i] = elems[i].replace("≫", "")
+                i -= 1
+            if kak:
+                i += 1
+                continue
             if elems[i] == "<br>":
                 kari[0] = kari[0].translate(self.table)
                 kari[1] = kari[1].translate(self.table)
@@ -120,24 +132,34 @@ class Play_w:
             i += 1
         self.root = Tk()
         self.root.title(title)
-        self.root.geometry("1000x400")
+        self.root.geometry("800x400")
         self.root.minsize(width=800, height=400)
         self.root.configure(bg="white")
 
-        self.main_font = tkFont(family = "M S ゴシック", size = 16)
+        self.main_font = tkFont.Font(self.root, family = "Yu Gothic", size = 16, weight="bold")
+        self.sub_font = tkFont.Font(self.root, family = "Yu Gothic", size = 14, weight="bold")
 
-        self.main_frame = tk.Frame(self.root, width=800, height=200, relief=tk.SOLID, bd=2, bg="white")
+        self.hide_frame = tk.Frame(self.root, width = 200, height = 80, relief=tk.FLAT, bg="white")
+        self.hide_frame.propagate(False)
+        self.main_frame = tk.Frame(self.root, width=600, height=130, relief=tk.SOLID, bd=2, bg="white")
         self.main_frame.propagate(False)
-       
-        self.label = ttk.Label(self.main_frame, text="スペースキーでスタート", padding=[0, 10], background="white", anchor=tk.CENTER, font=self.main_font)
-        self.label2 = ttk.Label(self.main_frame, padding=[0, 10], font=("", 25), background="white", anchor=tk.CENTER)
-        self.label3 = ttk.Label(self.root, text="\n", font=("", 20), background="white", anchor=tk.CENTER)
-    
-        self.label.pack()
-        self.label2.pack()
-        self.label3.pack()
 
+        self.line_canvs = tk.Canvas(self.main_frame, bg = "black", width=480, height=3)
+        self.line_canvs2 = tk.Canvas(self.root, bg = "black", width=420, height=3)
+       
+        self.label = ttk.Label(self.main_frame, text="スペースキーでスタート", padding=[0, 14], background="white", anchor=tk.CENTER, font=self.main_font)
+        self.label2 = ttk.Label(self.main_frame, padding=[0, 14], font=self.sub_font, background="white", anchor=tk.CENTER)
+        self.label3 = ttk.Label(self.root, text="\n", font=self.sub_font, background="white", anchor=tk.CENTER)
+
+        self.label.pack()
+        self.line_canvs.pack()
+        self.label2.pack()
+
+        self.hide_frame.pack()
         self.main_frame.pack()
+
+        self.label3.pack()
+        self.line_canvs2.pack()
        
         self.root.bind("<KeyPress>", self.Key_down)
         self.root.bind("<Configure>", self.Set_window_size)
@@ -157,16 +179,31 @@ class Play_w:
         self.width = event.width
         self.height = event.height
 
+        #フレームサイズ
         set_width = self.width * 0.7
-        set_height = self.height / 2
-        if set_width < 800:
-            set_width = 800
+        set_height = self.width / 16 + 50
+        if set_width < 600:
+            set_width = 600
         elif set_width > 1400:
             set_width = 1400
-        if set_height > 300:
-            set_height = 300
+        if set_height < 130:
+            set_height = 130
+        elif set_height > 180:
+            set_height = 180
 
+        self.line_canvs.config(width=set_width * 0.8)
+        self.line_canvs2.config(width=set_width * 0.7)
         self.main_frame.config(height = set_height, width = set_width)
+        self.hide_frame.config(height = self.height / 8)
+
+        #フォントサイズ
+        main_fontsize = int(self.width / 50)
+        sub_fontsize = int(self.width / 57)
+        if main_fontsize > 30:
+            main_fontsize = 30
+            sub_fontsize = 26
+        self.main_font.configure(size=main_fontsize)
+        self.sub_font.configure(size = sub_fontsize)
         return
     
     def Hira_to_Roma(self, st):
@@ -210,6 +247,7 @@ class Play_w:
                 except:
                     st = st[:i-1] + st[i+1:]
                     i+=1
+                    continue
             
             if xtu:
                 st = st[:i-1] + in_t[0] + in_t + st[i+len(tu):]
@@ -278,3 +316,4 @@ class Play_w:
             self.label["text"] = self.kasi_list[0][0]
             self.label2["text"] = self.kasi_list[0][1]
             self.now_str = self.kasi_list[0][2]
+            print(self.now_str)

@@ -8,7 +8,6 @@ import re
 import regex
 import jaconv
 import datetime
-import asyncio
 
 class Play_w:
     def __init__(self, url, title):
@@ -283,12 +282,7 @@ class Play_w:
             if len(self.now_str) == 1:
                 self.kasi_list.pop(0)
                 self.line_ctn += 1
-                loop = asyncio.get_event_loop()
-                gather = asyncio.gather(
-                    self.Show(0.5),
-                    self.Clear_text()
-                )
-                loop.run_until_complete(gather)
+                self.Clear_text()
                 return
             self.label3['text'] += key
             self.now_str = self.now_str[1:]
@@ -305,21 +299,20 @@ class Play_w:
         self.label["text"] = self.ctn
         self.ctn -= 1
         if self.ctn == -1:
-            self.label["text"] = self.kasi_list[0][0]
-            self.label2["text"] = self.kasi_list[0][1]
-            self.now_str = self.kasi_list[0][2]
+            self.Show()
             self.ctn = 0
             dt = datetime.datetime.now()
             self.start_time = dt.hour * 60 * 60 + dt.minute * 60 + dt.second
         else:
             self.root.after(1000, self.count)
     
-    async def Clear_text(self):
+    def Clear_text(self):
         self.label3['text'] = "\n"
         self.label2['text'] = ""
         self.label['text'] = ""
+        self.root.after(500, self.Show)
     
-    async def Show(self, sleep_time = 0):
+    def Show(self):
         if len(self.kasi_list) == 0:
             self.label["text"] = "終了"
             dt = datetime.datetime.now()
@@ -328,7 +321,6 @@ class Play_w:
             self.label2["text"] = "1秒あたり - " + str(heikin) + "文字"
             self.finish_flag = True
         else:
-            await asyncio.sleep(sleep_time)
             self.label["text"] = self.kasi_list[0][0]
             self.label2["text"] = self.kasi_list[0][1]
             self.now_str = self.kasi_list[0][2]

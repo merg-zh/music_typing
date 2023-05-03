@@ -8,6 +8,7 @@ import re
 import regex
 import jaconv
 import datetime
+import asyncio
 
 class Play_w:
     def __init__(self, url, title):
@@ -79,6 +80,8 @@ class Play_w:
         self.now_str = None
         self.typctn = 0
         self.start_time = 0
+
+        self.line_ctn = 0
 
         self.width = 800
         self.height = 400
@@ -210,7 +213,7 @@ class Play_w:
         words_pat = re.compile(r'ゃ|ゅ|ょ|ぁ|ぃ|ぅ|ぇ|ぉ')
 
         st = st.replace("ー","-").replace("☆", "").replace("(","").replace(")","").replace("「","") \
-            .replace("」","").replace("、", ",").replace("・",".").replace("…","...").replace("∽","") \
+            .replace("」","").replace("、", ",").replace("・","").replace("…","...").replace("∽","") \
             .replace("。",".").replace("‥","..")
         
         st = st.translate(self.table)
@@ -278,9 +281,14 @@ class Play_w:
         if  self.now_str[0] == key:
             self.typctn += 1
             if len(self.now_str) == 1:
-                self.label3['text'] = "\n"
                 self.kasi_list.pop(0)
-                self.Show()
+                self.line_ctn += 1
+                loop = asyncio.get_event_loop()
+                gather = asyncio.gather(
+                    self.Show(0.5),
+                    self.Clear_text()
+                )
+                loop.run_until_complete(gather)
                 return
             self.label3['text'] += key
             self.now_str = self.now_str[1:]
@@ -297,22 +305,30 @@ class Play_w:
         self.label["text"] = self.ctn
         self.ctn -= 1
         if self.ctn == -1:
-            self.Show()
+            self.label["text"] = self.kasi_list[0][0]
+            self.label2["text"] = self.kasi_list[0][1]
+            self.now_str = self.kasi_list[0][2]
             self.ctn = 0
             dt = datetime.datetime.now()
             self.start_time = dt.hour * 60 * 60 + dt.minute * 60 + dt.second
         else:
             self.root.after(1000, self.count)
     
-    def Show(self):        
+    async def Clear_text(self):
+        self.label3['text'] = "\n"
+        self.label2['text'] = ""
+        self.label['text'] = ""
+    
+    async def Show(self, sleep_time = 0):
         if len(self.kasi_list) == 0:
             self.label["text"] = "終了"
             dt = datetime.datetime.now()
             now_time = dt.hour * 60 * 60 + dt.minute * 60 + dt.second
-            heikin = int(self.typctn / (now_time - self.start_time) * 10) / 10
+            heikin = int(self.typctn / (now_time - self.start_time - self.line_ctn * 0.5) * 10) / 10
             self.label2["text"] = "1秒あたり - " + str(heikin) + "文字"
             self.finish_flag = True
         else:
+            await asyncio.sleep(sleep_time)
             self.label["text"] = self.kasi_list[0][0]
             self.label2["text"] = self.kasi_list[0][1]
             self.now_str = self.kasi_list[0][2]

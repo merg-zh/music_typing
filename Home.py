@@ -35,7 +35,7 @@ class Main():
         self.singer_text = StringVar()
         self.entry = CTkEntry(search_frame, width=250, textvariable=self.title_text, font=("Yu Gothic", 20))
         self.entry2 = CTkEntry(search_frame, width=250, textvariable=self.singer_text, font=("Yu Gothic", 20))
-        self.button = CTkButton(search_frame, text = "OK", width=40,command=lambda:self.Search())
+        self.button = CTkButton(search_frame, text = "検索", width=40,command=lambda:self.Search(), font=self.main_font)
 
         self.label.pack(side=ctk.LEFT)
         self.entry.pack(side=ctk.LEFT)

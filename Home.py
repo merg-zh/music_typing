@@ -1,9 +1,8 @@
-from tkinter import *
-from tkinter import ttk
+from customtkinter import *
+import customtkinter as ctk
 import requests
 from bs4 import BeautifulSoup as bsp4
 from Play import Play_w
-from function import ScrollableFrame
 
 song_list = []
 btn_list = []
@@ -29,28 +28,31 @@ def Search(btn_list, frame):
         k_u = str(elements[i].a.get('href'))
         t_t = str(elements[i].a.text).replace(" ", "").replace('\n', '')
         song_list.append([k_u, t_t])
-        btn = ttk.Button(frame.scrollable_frame, 
+        btn = CTkButton(frame, 
                          text= t_t + str(elements2[i].a.text).replace(" ", ""),
-                         padding=(5,10),
                          width=60,
                          command=Open_Song(i))
         btn.pack(side = "top")
         btn_list.append(btn)
-root = Tk()
-root.title("Main Window")
-root.geometry("800x500")
-root.minsize(width=400, height=400)
 
-frame = ScrollableFrame(root)
-
-label = ttk.Label(root, text = "曲名を入力", font=("", 20), padding=(5, 20), compound=CENTER)
-title_text = StringVar()
-entry = ttk.Entry(root, width=60, textvariable=title_text)
-button = ttk.Button(root, text = "OK", command=lambda:Search(btn_list, frame))
-
-label.pack()
-entry.pack()
-button.pack()
-frame.pack()
-
-root.mainloop()
+if __name__ == "__main__":
+    ctk.set_appearance_mode("System")
+    ctk.set_default_color_theme("blue")
+    root = CTk()
+    root.title("Main Window")
+    root.geometry("800x500")
+    root.minsize(width=400, height=400)
+    
+    frame = CTkFrame(root)
+    
+    label = CTkLabel(root, text = "曲名を入力", font=("", 20))
+    title_text = StringVar()
+    entry = CTkEntry(root, width=500, textvariable=title_text)
+    button = CTkButton(root, text = "OK", command=lambda:Search(btn_list, frame))
+    
+    label.pack()
+    entry.pack()
+    button.pack()
+    frame.pack()
+    
+    root.mainloop()

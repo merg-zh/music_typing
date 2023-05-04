@@ -1,7 +1,4 @@
-from tkinter import *
-from tkinter import ttk
-import tkinter as tk
-import tkinter.font as tkFont
+import customtkinter as ctk
 import requests
 from bs4 import BeautifulSoup as bsp4
 import re
@@ -65,10 +62,10 @@ class Play_w:
         }
 
         self.table = str.maketrans({
-            v: '' for v in '\u3000 \x0c\x0b\t\r'
+            v: '' for v in '\x0c\x0b\t\r'
         })
 
-        self.start_flag = False
+        self.start_status = 0
         self.finish_flag = False
         self.ctn = 3
         self.label = None
@@ -77,8 +74,8 @@ class Play_w:
         self.root = None
         self.kasi_list = []
         self.now_str = None
-        self.typctn = 0
         self.start_time = 0
+        self.max_continue = 0
 
         self.line_ctn = 0
 
@@ -118,49 +115,66 @@ class Play_w:
                 kari[2] = self.Hira_to_Roma(kari[2])
                 self.kasi_list.append(kari)
                 kari = ["", "", ""]
-            elif self.p.fullmatch(elems[i]):
-                kari[0] += elems[i]
-                kari[1] += elems[i]
-                kari[2] += elems[i]
-            elif kan.fullmatch(elems[i]):
+            elif kan.search(elems[i]):
                 kari[0] += elems[i]
                 kari[1] += elems[i + 1]
                 kari[2] += jaconv.kata2hira(elems[i + 1])
                 i += 1
+            elif self.p.fullmatch(elems[i]):
+                kari[0] += elems[i]
+                kari[1] += elems[i]
+                kari[2] += elems[i]
             else:
                 kari[0] += elems[i]
                 kari[1] += elems[i]
                 kari[2] += jaconv.kata2hira(elems[i])
             i += 1
-        self.root = Tk()
+        
+        self.typ_ctn = 0
+        
+        ctk.set_appearance_mode("light") 
+        ctk.set_default_color_theme("blue")
+        self.root = ctk.CTk()
         self.root.title(title)
         self.root.geometry("800x400")
         self.root.minsize(width=800, height=400)
-        self.root.configure(bg="white")
+        self.root.configure(fg_color="white")
 
-        self.main_font = tkFont.Font(self.root, family = "Yu Gothic", size = 16, weight="bold")
-        self.sub_font = tkFont.Font(self.root, family = "Yu Gothic", size = 14, weight="bold")
+        self.main_font = ctk.CTkFont(family = "Yu Gothic", size = 18, weight="bold")
+        self.sub_font = ctk.CTkFont(family = "Yu Gothic", size = 16, weight="bold")
 
-        self.hide_frame = tk.Frame(self.root, width = 200, height = 80, relief=tk.FLAT, bg="white")
+        self.hide_frame = ctk.CTkFrame(self.root, width=2000 ,height = 80, fg_color="transparent")
         self.hide_frame.propagate(False)
-        self.main_frame = tk.Frame(self.root, width=600, height=130, relief=tk.SOLID, bd=2, bg="white")
+        self.main_frame = ctk.CTkFrame(self.root, corner_radius=50, width=600, height=130, border_width=3,border_color="#2D2D2D")
         self.main_frame.propagate(False)
+        self.sub_frame = ctk.CTkFrame(self.root, fg_color="transparent")
 
-        self.line_canvs = tk.Canvas(self.main_frame, bg = "black", width=480, height=3)
-        self.line_canvs2 = tk.Canvas(self.root, bg = "black", width=420, height=3)
+        self.progressbar = ctk.CTkProgressBar(self.hide_frame, width=400, height=10, border_width=2, \
+                                               border_color="#2D2D2D", corner_radius=50, fg_color="#FFFFFF", \
+                                               progress_color="#FFFFFF", determinate_speed = int(50 / len(self.kasi_list) * 100) / 100)
+        self.conb_label = ctk.CTkLabel(self.hide_frame, text="0x", font=("", 25))
+        self.progressbar.set(0)
+        self.progressbar.place(relx=0, rely=0)
+        self.conb_label.pack(anchor=ctk.E)
+
+        self.line_canvs = ctk.CTkCanvas(self.main_frame, bg = "black", width=480, height=3)
+        self.line_canvs2 = ctk.CTkCanvas(self.root, bg = "black", width=420, height=3)
        
-        self.label = ttk.Label(self.main_frame, text="スペースキーでスタート", padding=[0, 14], background="white", anchor=tk.CENTER, font=self.main_font)
-        self.label2 = ttk.Label(self.main_frame, padding=[0, 14], font=self.sub_font, background="white", anchor=tk.CENTER)
-        self.label3 = ttk.Label(self.root, text="\n", font=self.sub_font, background="white", anchor=tk.CENTER)
+        self.label = ctk.CTkLabel(self.main_frame, text="スペースキーでスタート", anchor=ctk.CENTER, font=self.main_font)
+        self.label2 = ctk.CTkLabel(self.main_frame, text="", font=self.sub_font, anchor=ctk.CENTER)
+        self.label3 = ctk.CTkLabel(self.sub_frame, text="\n", font=self.sub_font, anchor=ctk.CENTER)
+        self.label4 = ctk.CTkLabel(self.sub_frame, text="", font=self.sub_font, anchor=ctk.CENTER, text_color="white")
 
-        self.label.pack()
-        self.line_canvs.pack()
-        self.label2.pack()
+        self.label.place(relx=0.5, rely=0.3, anchor=ctk.CENTER)
+        self.line_canvs.place(relx=0.5, rely=0.5, anchor=ctk.CENTER)
+        self.label2.place(relx=0.5, rely=0.7, anchor=ctk.CENTER)
 
-        self.hide_frame.pack()
+        self.hide_frame.pack(padx=0, pady=0)
         self.main_frame.pack()
 
-        self.label3.pack()
+        self.label3.pack(side=ctk.LEFT)
+        self.label4.pack(side=ctk.LEFT)
+        self.sub_frame.pack()
         self.line_canvs2.pack()
        
         self.root.bind("<KeyPress>", self.Key_down)
@@ -186,26 +200,30 @@ class Play_w:
         set_height = self.width / 16 + 50
         if set_width < 600:
             set_width = 600
-        elif set_width > 1400:
-            set_width = 1400
+        elif set_width > 1200:
+            set_width = 1200
         if set_height < 130:
             set_height = 130
         elif set_height > 180:
             set_height = 180
 
-        self.line_canvs.config(width=set_width * 0.8)
-        self.line_canvs2.config(width=set_width * 0.7)
-        self.main_frame.config(height = set_height, width = set_width)
-        self.hide_frame.config(height = self.height / 8)
+        self.line_canvs.configure(width=set_width * 0.8)
+        self.line_canvs2.configure(width=set_width * 0.7)
+        self.main_frame.configure(height = set_height, width = set_width)
+        self.hide_frame.configure(height = self.height / 8)
 
         #フォントサイズ
-        main_fontsize = int(self.width / 50)
-        sub_fontsize = int(self.width / 57)
-        if main_fontsize > 30:
-            main_fontsize = 30
-            sub_fontsize = 26
+        main_fontsize = int(self.width / 44)
+        sub_fontsize = int(self.width / 50)
+        if main_fontsize > 34:
+            main_fontsize = 34
+            sub_fontsize = 30
         self.main_font.configure(size=main_fontsize)
         self.sub_font.configure(size = sub_fontsize)
+        self.conb_label.configure(font = ("", self.width / 32))
+
+        #プログレスバーサイズ
+        self.progressbar.configure(width= int(self.width / 2), height = int(self.width / 80))
         return
     
     def Hira_to_Roma(self, st):
@@ -261,15 +279,23 @@ class Play_w:
             
 
         return st
+    
+    def Ok(self):
+        self.typ_ctn += 1
+        self.label4.configure(text = self.now_str)
+        self.conb_label.configure(text = str(int(self.conb_label.cget("text")[0:-1]) + 1) + "x")
+        if self.now_str[0] == " ":
+            self.label3.configure(text = self.label3.cget("text") + " ")
+            self.now_str = self.now_str[1:]
 
     def Key_down(self, e):
         key = e.keysym
-        if key == "space" and self.start_flag == False:
-            self.start_flag = True
+        if key == "space" and self.start_status == 0:
+            self.start_status = 1
             self.count()
             return
         
-        if self.start_flag == False or key == "LeftShift":
+        if self.start_status < 2 or key == "Shift_L":
             return
         
         try:
@@ -278,27 +304,37 @@ class Play_w:
             None
         
         if  self.now_str[0] == key:
-            self.typctn += 1
             if len(self.now_str) == 1:
                 self.kasi_list.pop(0)
                 self.line_ctn += 1
                 self.Clear_text()
                 return
-            self.label3['text'] += key
+            self.label3.configure(text = self.label3.cget("text") + key)
             self.now_str = self.now_str[1:]
+            self.Ok()
+            return
         elif self.now_str[0:2] == "zy" and key == "j":
-            self.typctn += 1
-            self.label3['text'] += key
+            self.label3.configure(text = self.label3.cget("text") + key)
             self.now_str = self.now_str[2:]
-        elif len(self.label3['text']) > 2:
-            if self.label3['text'][-1] == "n" and self.label3['text'][-2] != "n":
-                self.typctn += 1
-                self.label3['text'] += key
+            self.Ok()
+            return
+        elif len(self.label3.cget("text")) > 2:
+            if self.label3.cget("text")[-1] == "n" and self.label3.cget("text")[-2] != "n":
+                self.label3.configure(text = self.label3.cget("text") + key)
+                self.Ok()
+                return
+        
+        self.label4.configure(text_color = "gray")
+        if self.max_continue < int(self.conb_label.cget("text")[0:-1]):
+            self.max_continue = int(self.conb_label.cget("text")[0:-1])
+        self.conb_label.configure(text = "0x")
+        
     
     def count(self):
-        self.label["text"] = self.ctn
+        self.label.configure(text = self.ctn)
         self.ctn -= 1
         if self.ctn == -1:
+            self.start_status = 2
             self.Show()
             self.ctn = 0
             dt = datetime.datetime.now()
@@ -307,21 +343,29 @@ class Play_w:
             self.root.after(1000, self.count)
     
     def Clear_text(self):
-        self.label3['text'] = "\n"
-        self.label2['text'] = ""
-        self.label['text'] = ""
+        if self.progressbar.get() == 0:
+            self.progressbar.configure(progress_color = "#00ffff")
+        self.progressbar.step()
+        self.label4.configure(text = "", text_color = "white")
+        self.label3.configure(text = "\n")
+        self.label2.configure(text = "")
+        self.label.configure(text = "")
         self.root.after(500, self.Show)
     
     def Show(self):
         if len(self.kasi_list) == 0:
-            self.label["text"] = "終了"
+            self.label.configure(text = "終了")
             dt = datetime.datetime.now()
             now_time = dt.hour * 60 * 60 + dt.minute * 60 + dt.second
-            heikin = int(self.typctn / (now_time - self.start_time - self.line_ctn * 0.5) * 10) / 10
-            self.label2["text"] = "1秒あたり - " + str(heikin) + "文字"
+            heikin = int(self.typ_ctn / (now_time - self.start_time - self.line_ctn * 0.5) * 10) / 10
+            self.label2.configure(text = "1秒あたり - " + str(heikin) + "文字")
+            if self.max_continue == 0:
+                self.max_continue = self.typ_ctn
+            self.label3.configure(text = "\n最大連続タイプ数 - " + str(self.max_continue) + "文字")
             self.finish_flag = True
         else:
-            self.label["text"] = self.kasi_list[0][0]
-            self.label2["text"] = self.kasi_list[0][1]
+            self.label.configure(text = self.kasi_list[0][0])
+            self.label2.configure(text = self.kasi_list[0][1])
             self.now_str = self.kasi_list[0][2]
+            self.label4.configure(text = self.now_str)
             print(self.now_str)

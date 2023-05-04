@@ -132,38 +132,38 @@ class Play_w:
         
         self.typ_ctn = 0
         
-        ctk.set_appearance_mode("light") 
+        ctk.set_appearance_mode("dark") 
         ctk.set_default_color_theme("blue")
         self.root = ctk.CTk()
         self.root.title(title)
         self.root.geometry("800x400")
         self.root.minsize(width=800, height=400)
-        self.root.configure(fg_color="white")
+        self.root.configure(fg_color="#202020")
 
         self.main_font = ctk.CTkFont(family = "Yu Gothic", size = 18, weight="bold")
         self.sub_font = ctk.CTkFont(family = "Yu Gothic", size = 16, weight="bold")
 
         self.hide_frame = ctk.CTkFrame(self.root, width=2000 ,height = 80, fg_color="transparent")
         self.hide_frame.propagate(False)
-        self.main_frame = ctk.CTkFrame(self.root, corner_radius=50, width=600, height=130, border_width=3,border_color="#2D2D2D")
+        self.main_frame = ctk.CTkFrame(self.root, corner_radius=50, width=600, height=130, border_width=3,border_color="#606060", fg_color="#2f2f2f")
         self.main_frame.propagate(False)
         self.sub_frame = ctk.CTkFrame(self.root, fg_color="transparent")
 
-        self.progressbar = ctk.CTkProgressBar(self.hide_frame, width=400, height=10, border_width=2, \
-                                               border_color="#2D2D2D", corner_radius=50, fg_color="#FFFFFF", \
-                                               progress_color="#FFFFFF", determinate_speed = int(50 / len(self.kasi_list) * 100) / 100)
-        self.conb_label = ctk.CTkLabel(self.hide_frame, text="0x", font=("", 25))
+        self.progressbar = ctk.CTkProgressBar(self.hide_frame, width=400, height=15, border_width=2, \
+                                               border_color="#404040", corner_radius=0, fg_color="#606060", \
+                                               determinate_speed = int(50 / len(self.kasi_list) * 100) / 100)
+        self.conb_label = ctk.CTkLabel(self.hide_frame, text="0x", font=("", 25), text_color="white")
         self.progressbar.set(0)
         self.progressbar.place(relx=0, rely=0)
         self.conb_label.pack(anchor=ctk.E, padx=5)
 
-        self.line_canvs = ctk.CTkCanvas(self.main_frame, bg = "black", width=480, height=3)
-        self.line_canvs2 = ctk.CTkCanvas(self.root, bg = "black", width=420, height=3)
+        self.line_canvs = ctk.CTkCanvas(self.main_frame, bg = "#404040", highlightthickness=0, width=480, height=5)
+        self.line_canvs2 = ctk.CTkCanvas(self.root, bg = "#404040", highlightthickness=0, width=420, height=5)
        
-        self.label = ctk.CTkLabel(self.main_frame, text="スペースキーでスタート", anchor=ctk.CENTER, font=self.main_font)
-        self.label2 = ctk.CTkLabel(self.main_frame, text="", font=self.sub_font, anchor=ctk.CENTER)
-        self.label3 = ctk.CTkLabel(self.sub_frame, text="\n", font=self.sub_font, anchor=ctk.CENTER)
-        self.label4 = ctk.CTkLabel(self.sub_frame, text="", font=self.sub_font, anchor=ctk.CENTER, text_color="white")
+        self.label = ctk.CTkLabel(self.main_frame, text="スペースキーでスタート", anchor=ctk.CENTER, font=self.main_font, text_color="white")
+        self.label2 = ctk.CTkLabel(self.main_frame, text="", font=self.sub_font, anchor=ctk.CENTER, text_color="white")
+        self.label3 = ctk.CTkLabel(self.sub_frame, text="\n", font=self.sub_font, anchor=ctk.CENTER, text_color="white")
+        self.label4 = ctk.CTkLabel(self.sub_frame, text="", font=self.sub_font, anchor=ctk.CENTER, text_color="#202020")
 
         self.label.place(relx=0.5, rely=0.3, anchor=ctk.CENTER)
         self.line_canvs.place(relx=0.5, rely=0.5, anchor=ctk.CENTER)
@@ -172,8 +172,8 @@ class Play_w:
         self.hide_frame.pack(padx=0, pady=0)
         self.main_frame.pack()
 
-        self.label3.pack(side=ctk.LEFT)
-        self.label4.pack(side=ctk.LEFT)
+        self.label3.pack(side=ctk.LEFT, ipady=10)
+        self.label4.pack(side=ctk.LEFT, ipady=10)
         self.sub_frame.pack()
         self.line_canvs2.pack()
        
@@ -223,7 +223,15 @@ class Play_w:
         self.conb_label.configure(font = ("", self.width / 32))
 
         #プログレスバーサイズ
-        self.progressbar.configure(width= int(self.width / 2), height = int(self.width / 80))
+        set_height = int(self.width / 53.3)
+        set_bd_size = int(self.width / 270)
+        if set_height > 25:
+            set_height = 25
+        if set_bd_size > 5:
+            set_bd_size = 5
+        self.progressbar.configure(width= int(self.width / 2), height = set_height, border_width = set_bd_size)
+
+        
         return
     
     def Hira_to_Roma(self, st):
@@ -324,7 +332,7 @@ class Play_w:
                 self.Ok()
                 return
         
-        self.label4.configure(text_color = "gray")
+        self.label4.configure(text_color = "#a0a0a0")
         if self.max_continue < int(self.conb_label.cget("text")[0:-1]):
             self.max_continue = int(self.conb_label.cget("text")[0:-1])
         self.conb_label.configure(text = "0x")
@@ -344,9 +352,9 @@ class Play_w:
     
     def Clear_text(self):
         if self.progressbar.get() == 0:
-            self.progressbar.configure(progress_color = "#00ffff")
+            self.progressbar.configure(progress_color = "#404040")
         self.progressbar.step()
-        self.label4.configure(text = "", text_color = "white")
+        self.label4.configure(text = "", text_color = "#202020")
         self.label3.configure(text = "\n")
         self.label2.configure(text = "")
         self.label.configure(text = "")

@@ -152,7 +152,7 @@ class Play_w:
         self.progressbar = ctk.CTkProgressBar(self.hide_frame, width=400, height=15, border_width=2, \
                                                border_color="#404040", corner_radius=0, fg_color="#606060", \
                                                determinate_speed = int(50 / len(self.kasi_list) * 100) / 100)
-        self.conb_label = ctk.CTkLabel(self.hide_frame, text="0x", font=("", 25), text_color="white")
+        self.conb_label = ctk.CTkLabel(self.hide_frame, text="0x", font=("Yu Gothic", 25), text_color="white")
         self.progressbar.set(0)
         self.progressbar.place(relx=0, rely=0)
         self.conb_label.pack(anchor=ctk.E, padx=5)
@@ -220,7 +220,7 @@ class Play_w:
             sub_fontsize = 30
         self.main_font.configure(size=main_fontsize)
         self.sub_font.configure(size = sub_fontsize)
-        self.conb_label.configure(font = ("", self.width / 32))
+        self.conb_label.configure(font = ("Yu Gothic", self.width / 32))
 
         #プログレスバーサイズ
         set_height = int(self.width / 53.3)
@@ -235,11 +235,12 @@ class Play_w:
         return
     
     def Hira_to_Roma(self, st):
+        print(st)
         words_pat = re.compile(r'ゃ|ゅ|ょ|ぁ|ぃ|ぅ|ぇ|ぉ')
 
         st = st.replace("ー","-").replace("☆", "").replace("(","").replace(")","").replace("「","") \
             .replace("」","").replace("、", ",").replace("・","").replace("…","...").replace("∽","") \
-            .replace("。",".").replace("‥","..")
+            .replace("。",".").replace("‥","..").replace("♪", "")
         
         st = st.translate(self.table)
         
@@ -376,4 +377,6 @@ class Play_w:
             self.label2.configure(text = self.kasi_list[0][1])
             self.now_str = self.kasi_list[0][2]
             self.label4.configure(text = self.now_str)
+            print("-------")
+            print(self.kasi_list[0][1])
             print(self.now_str)

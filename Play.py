@@ -155,7 +155,7 @@ class Play_w:
         self.conb_label = ctk.CTkLabel(self.hide_frame, text="0x", font=("", 25))
         self.progressbar.set(0)
         self.progressbar.place(relx=0, rely=0)
-        self.conb_label.pack(anchor=ctk.E)
+        self.conb_label.pack(anchor=ctk.E, padx=5)
 
         self.line_canvs = ctk.CTkCanvas(self.main_frame, bg = "black", width=480, height=3)
         self.line_canvs2 = ctk.CTkCanvas(self.root, bg = "black", width=420, height=3)

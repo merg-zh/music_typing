@@ -140,6 +140,7 @@ class Play_w:
             i += 1
         
         self.typ_ctn = 0
+        self.miss_typ_ctn = 0
         
         ctk.set_appearance_mode("dark") 
         ctk.set_default_color_theme("blue")
@@ -154,7 +155,7 @@ class Play_w:
 
         self.hide_frame = ctk.CTkFrame(self.root, width=2000 ,height = 80, fg_color="transparent")
         self.hide_frame.propagate(False)
-        self.main_frame = ctk.CTkFrame(self.root, corner_radius=50, width=600, height=130, border_width=3,border_color="#606060", fg_color="#2f2f2f")
+        self.main_frame = ctk.CTkFrame(self.root, corner_radius=50, width=600, height=130, border_width=4,border_color="#606060", fg_color="#2f2f2f")
         self.main_frame.propagate(False)
         self.sub_frame = ctk.CTkFrame(self.root, fg_color="transparent")
 
@@ -324,7 +325,7 @@ class Play_w:
             self.count()
             return
         
-        if self.start_status < 2 or key == "Shift_L":
+        if self.start_status < 2 or key == "Shift_L" or self.finish_flag:
             return
         
         try:
@@ -363,6 +364,7 @@ class Play_w:
         if self.now_color == "2f":
             self.now_color = "70"
             self.Change_color()
+        self.miss_typ_ctn += 1
         
     
     def count(self):
@@ -391,34 +393,23 @@ class Play_w:
             self.root.after(500, self.Show)
     
     def Show(self):
-        self.Finish()
-        if len(self.kasi_list) == 0:
-            self.label.configure(text = "終了")
-            dt = datetime.datetime.now()
-            now_time = dt.hour * 60 * 60 + dt.minute * 60 + dt.second
-            heikin = int(self.typ_ctn / (now_time - self.start_time - self.line_ctn * 0.5) * 10) / 10
-            self.label2.configure(text = "1秒あたり - " + str(heikin) + "文字")
-            if self.max_continue == 0:
-                self.max_continue = self.typ_ctn
-            self.label3.configure(text = "\n最大連続タイプ数 - " + str(self.max_continue) + "文字")
-            self.finish_flag = True
+        if len(self.kasi_list[0][0]) > 47:
+            self.label.configure(text = self.kasi_list[0][0][:47] + "\n" + self.kasi_list[0][0][47:-1])
         else:
-            if len(self.kasi_list[0][0]) > 47:
-                self.label.configure(text = self.kasi_list[0][0][:47] + "\n" + self.kasi_list[0][0][47:-1])
-            else:
-                self.label.configure(text = self.kasi_list[0][0])
-            if len(self.kasi_list[0][1]) > 47:
-                self.label2.configure(text = self.kasi_list[0][1][:47] + "\n" + self.kasi_list[0][1][47:-1])
-            else:
-                self.label2.configure(text = self.kasi_list[0][1])
-            self.now_str = self.kasi_list[0][2]
-            self.label4.configure(text = self.now_str)
-            print("-------")
-            print(self.kasi_list[0][1])
-            print(self.now_str)
+            self.label.configure(text = self.kasi_list[0][0])
+        if len(self.kasi_list[0][1]) > 47:
+            self.label2.configure(text = self.kasi_list[0][1][:47] + "\n" + self.kasi_list[0][1][47:-1])
+        else:
+            self.label2.configure(text = self.kasi_list[0][1])
+        self.now_str = self.kasi_list[0][2]
+        self.label4.configure(text = self.now_str)
+        print("-------")
+        print(self.kasi_list[0][1])
+        print(self.now_str)
     
     def Finish(self):
         if self.anim_c == 0:
+            self.finish_flag = True
             self.main_frame.configure(width = self.main_frame.cget("width") - self.imx / 150)
             self.sub_frame.configure(width = self.main_frame.cget("width") - self.imx / 150)
             self.line_canvs2.configure(width = self.main_frame.cget("width") - self.imx / 150)
@@ -428,4 +419,39 @@ class Play_w:
                 self.sub_frame.destroy()
                 self.line_canvs2.destroy()
             self.root.after(1, self.Finish)
+        elif self.anim_c == 1:
+            set_width = self.width * 0.7
+            if set_width < 600:
+                set_width = 600
+            elif set_width > 1200:
+                set_width = 1200
+            self.main_frame = ctk.CTkFrame(self.root, corner_radius=50, width=set_width, height=0, border_width=6,border_color="#606060", fg_color="#2f2f2f")
+            self.main_frame.pack()
+            self.anim_c = 2
+            self.root.after(1, self.Finish)
+        elif self.anim_c == 2:
+            new_line_canvas = ctk.CTkCanvas(self.main_frame, bg = "#2f2f2f", highlightthickness=0, width=self.main_frame.cget("width"), height=1)
+            new_line_canvas.pack()
+            new_label = ctk.CTkLabel(self.main_frame, text="タイプ数 - " + str(self.typ_ctn) + "　　ミスタイプ数 - " + str(self.miss_typ_ctn), anchor=ctk.CENTER, font=self.main_font, text_color="white")
+            new_label.pack(pady = 20)
+            self.anim_c = 3
+            self.root.after(1000, self.Finish)
+        elif self.anim_c == 3:
+            self.line_canvs = ctk.CTkCanvas(self.main_frame, bg = "#404040", highlightthickness=0, width=int(self.main_frame.cget("width") * 0.7), height=5)
+            self.line_canvs.pack()
+            dt = datetime.datetime.now()
+            now_time = dt.hour * 60 * 60 + dt.minute * 60 + dt.second
+            heikin = int(self.typ_ctn / (now_time - self.start_time - self.line_ctn * 0.5) * 10) / 10
+            new_label = ctk.CTkLabel(self.main_frame, text="1秒あたり - " + str(heikin) + "　　正誤率 - " + str(int(self.typ_ctn / self.miss_typ_ctn * 10) / 10) + "％", anchor=ctk.CENTER, font=self.main_font, text_color="white")
+            new_label.pack(pady = 20)
+            self.anim_c = 4
+            self.root.after(1000, self.Finish)
+        elif self.anim_c == 4:
+            self.line_canvs2 = ctk.CTkCanvas(self.main_frame, bg = "#404040", highlightthickness=0, width=int(self.main_frame.cget("width") * 0.7), height=5)
+            self.line_canvs2.pack()
+            if self.max_continue == 0:
+                self.max_continue = self.typ_ctn
+            new_label = ctk.CTkLabel(self.main_frame, text="最大連続タイプ数 - " + str(self.max_continue) + "文字", anchor=ctk.CENTER, font=self.main_font, text_color="white")
+            new_label.pack(pady = 20)
+            self.anim_c = 5
         return

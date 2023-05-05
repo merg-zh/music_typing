@@ -93,6 +93,7 @@ class Main():
                 self.btn_list[i][1].destroy()
             else:
                 self.btn_list[i].destroy()
+        self.btn_list = []
         tt = self.title_text.get()
         st = self.singer_text.get()
         url = ""

@@ -111,8 +111,8 @@ class Main():
         elements = element.find_all("p", class_="searchResult__title")
         elements2 = element.find_all("p", class_="searchResult__name")
         set_width = self.width / 1.12
-        if set_width > 1000:
-            set_width = 1000
+        if set_width > 1100:
+            set_width = 1100
         for i in range(len(elements)):
             k_u = str(elements[i].a.get('href'))
             t_t = str(elements[i].a.text).replace(" ", "").replace('\n', '')

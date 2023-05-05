@@ -46,6 +46,7 @@ class Main():
         self.frame.pack(pady = 50)
 
         self.root.bind("<Configure>", self.Set_window_size)
+        self.root.bind("<KeyPress>", self.Key_down)
         self.root.mainloop()
     
     def Set_window_size(self, event):
@@ -143,6 +144,11 @@ class Main():
         def x():
             play = Play_w(self.song_list[i][0], self.song_list[i][1])
         return x
+    
+    def Key_down(self, event):
+        key = event.keysym
+        if key == "Return":
+            self.Search()
 
 if __name__ == "__main__":
     main = Main()

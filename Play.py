@@ -5,6 +5,7 @@ import re
 import regex
 import jaconv
 import datetime
+import pygame
 
 class Play_w:
     def __init__(self, url, title):
@@ -58,7 +59,7 @@ class Play_w:
             "comma":",","exclam":"!","period":",","question":"?",
             "minus":"-","apostrophe":"'","ampersand":"&","numbersign":"#",
             "dollar":"$","percent":"%","equal":"=","asciitilde":"~",
-            "period":"."
+            "period":".", "quoteright":"'"
         }
 
         self.table = str.maketrans({
@@ -81,6 +82,14 @@ class Play_w:
 
         self.width = 800
         self.height = 400
+
+        self.now_color = "2f"
+        self.anim_c = 0
+        self.imx = 600
+
+        pygame.mixer.init()
+        self.true_se = pygame.mixer.Sound("data/se/typ.mp3")
+        self.false_se = pygame.mixer.Sound("data/se/false.mp3")
 
         res = requests.get("https://utaten.com" + url)
         soup = bsp4(res.text, "html.parser")
@@ -207,6 +216,8 @@ class Play_w:
         elif set_height > 180:
             set_height = 180
 
+        self.imx = set_width
+
         self.line_canvs.configure(width=set_width * 0.8)
         self.line_canvs2.configure(width=set_width * 0.7)
         self.main_frame.configure(height = set_height, width = set_width)
@@ -235,7 +246,6 @@ class Play_w:
         return
     
     def Hira_to_Roma(self, st):
-        print(st)
         words_pat = re.compile(r'ゃ|ゅ|ょ|ぁ|ぃ|ぅ|ぇ|ぉ')
 
         st = st.replace("ー","-").replace("☆", "").replace("(","").replace(")","").replace("「","") \
@@ -290,12 +300,22 @@ class Play_w:
         return st
     
     def Ok(self):
+        self.true_se.play()
         self.typ_ctn += 1
         self.label4.configure(text = self.now_str)
         self.conb_label.configure(text = str(int(self.conb_label.cget("text")[0:-1]) + 1) + "x")
         if self.now_str[0] == " ":
             self.label3.configure(text = self.label3.cget("text") + " ")
             self.now_str = self.now_str[1:]
+    
+    def Change_color(self):
+        self.now_color = format((int(self.now_color, 16) - 3), 'x')
+        if self.now_color != "2e":
+            self.main_frame.configure(fg_color="#" + self.now_color + "2f2f")
+            self.root.after(50, self.Change_color)
+        else:
+            self.now_color = "2f"
+            self.main_frame.configure(fg_color="#" + self.now_color + "2f2f")
 
     def Key_down(self, e):
         key = e.keysym
@@ -314,6 +334,7 @@ class Play_w:
         
         if  self.now_str[0] == key:
             if len(self.now_str) == 1:
+                self.true_se.play()
                 self.kasi_list.pop(0)
                 self.line_ctn += 1
                 self.Clear_text()
@@ -337,6 +358,11 @@ class Play_w:
         if self.max_continue < int(self.conb_label.cget("text")[0:-1]):
             self.max_continue = int(self.conb_label.cget("text")[0:-1])
         self.conb_label.configure(text = "0x")
+        self.false_se.play()
+        self.main_frame.configure(fg_color="#702f2f")
+        if self.now_color == "2f":
+            self.now_color = "70"
+            self.Change_color()
         
     
     def count(self):
@@ -359,9 +385,13 @@ class Play_w:
         self.label3.configure(text = "\n")
         self.label2.configure(text = "")
         self.label.configure(text = "")
-        self.root.after(500, self.Show)
+        if len(self.kasi_list) == 0:
+            self.Finish()
+        else:
+            self.root.after(500, self.Show)
     
     def Show(self):
+        self.Finish()
         if len(self.kasi_list) == 0:
             self.label.configure(text = "終了")
             dt = datetime.datetime.now()
@@ -373,10 +403,29 @@ class Play_w:
             self.label3.configure(text = "\n最大連続タイプ数 - " + str(self.max_continue) + "文字")
             self.finish_flag = True
         else:
-            self.label.configure(text = self.kasi_list[0][0])
-            self.label2.configure(text = self.kasi_list[0][1])
+            if len(self.kasi_list[0][0]) > 47:
+                self.label.configure(text = self.kasi_list[0][0][:47] + "\n" + self.kasi_list[0][0][47:-1])
+            else:
+                self.label.configure(text = self.kasi_list[0][0])
+            if len(self.kasi_list[0][1]) > 47:
+                self.label2.configure(text = self.kasi_list[0][1][:47] + "\n" + self.kasi_list[0][1][47:-1])
+            else:
+                self.label2.configure(text = self.kasi_list[0][1])
             self.now_str = self.kasi_list[0][2]
             self.label4.configure(text = self.now_str)
             print("-------")
             print(self.kasi_list[0][1])
             print(self.now_str)
+    
+    def Finish(self):
+        if self.anim_c == 0:
+            self.main_frame.configure(width = self.main_frame.cget("width") - self.imx / 150)
+            self.sub_frame.configure(width = self.main_frame.cget("width") - self.imx / 150)
+            self.line_canvs2.configure(width = self.main_frame.cget("width") - self.imx / 150)
+            if self.main_frame.cget("width") == 0:
+                self.anim_c = 1
+                self.main_frame.destroy()
+                self.sub_frame.destroy()
+                self.line_canvs2.destroy()
+            self.root.after(1, self.Finish)
+        return

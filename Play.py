@@ -403,9 +403,6 @@ class Play_w:
             self.label2.configure(text = self.kasi_list[0][1])
         self.now_str = self.kasi_list[0][2]
         self.label4.configure(text = self.now_str)
-        print("-------")
-        print(self.kasi_list[0][1])
-        print(self.now_str)
     
     def Finish(self):
         if self.anim_c == 0:
@@ -442,7 +439,7 @@ class Play_w:
             dt = datetime.datetime.now()
             now_time = dt.hour * 60 * 60 + dt.minute * 60 + dt.second
             heikin = int(self.typ_ctn / (now_time - self.start_time - self.line_ctn * 0.5) * 10) / 10
-            new_label = ctk.CTkLabel(self.main_frame, text="1秒あたり - " + str(heikin) + "　　正誤率 - " + str(int(self.miss_typ_ctn / self.typ_ctn * 1000) / 10) + "％", anchor=ctk.CENTER, font=self.main_font, text_color="white")
+            new_label = ctk.CTkLabel(self.main_frame, text="1秒あたり - " + str(heikin) + "　　正誤率 - " + str(int(self.typ_ctn / (self.miss_typ_ctn + self.typ_ctn) * 1000) / 10) + "％", anchor=ctk.CENTER, font=self.main_font, text_color="white")
             new_label.pack(pady = 20)
             self.anim_c = 4
             self.root.after(1000, self.Finish)

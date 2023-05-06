@@ -26,6 +26,8 @@ a = Analysis(
     cipher=block_cipher,
     noarchive=False,
 )
+a.datas += [('typ.mp3', './data/se/typ.mp3', 'DATA'),
+            ('false.mp3','./data/se/false.mp3', 'DATA'),]
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 exe = EXE(
@@ -42,7 +44,7 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,
+    console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

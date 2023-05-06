@@ -6,6 +6,8 @@ import regex
 import jaconv
 import datetime
 import pygame
+import sys
+import os
 
 class Play_w:
     def __init__(self, url, title):
@@ -88,8 +90,8 @@ class Play_w:
         self.imx = 600
 
         pygame.mixer.init()
-        self.true_se = pygame.mixer.Sound("data/se/typ.mp3")
-        self.false_se = pygame.mixer.Sound("data/se/false.mp3")
+        self.true_se = pygame.mixer.Sound(self.resource_path("typ.mp3"))
+        self.false_se = pygame.mixer.Sound(self.resource_path("false.mp3"))
 
         res = requests.get("https://utaten.com" + url)
         soup = bsp4(res.text, "html.parser")
@@ -446,3 +448,8 @@ class Play_w:
             self.anim_c += 1
             self.root.after(1000, self.Finish)
         return
+
+    def resource_path(self, relative_path):
+        if hasattr(sys, '_MEIPASS'):
+            return os.path.join(sys._MEIPASS, relative_path)
+        return os.path.join(os.path.abspath("."), relative_path)

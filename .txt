@@ -1,2 +1,3 @@
 pyinstaller -F <.py file> --collect-all customtkinter
 pyinstaller -F Home.py --onefile --noconsole --collect-all customtkinter
+pyinstaller Home.spec

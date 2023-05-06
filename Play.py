@@ -140,7 +140,6 @@ class Play_w:
                 kari[1] += elems[i]
                 kari[2] += jaconv.kata2hira(elems[i])
             i += 1
-        print(self.kasi_list)
         self.typ_ctn = 0
         self.miss_typ_ctn = 0
         
@@ -251,10 +250,7 @@ class Play_w:
     def Hira_to_Roma(self, st):
         words_pat = re.compile(r'ゃ|ゅ|ょ|ぁ|ぃ|ぅ|ぇ|ぉ')
 
-        st = st.replace("ー","-").replace("☆", "").replace("(","").replace(")","").replace("「","") \
-            .replace("」","").replace("、", ",").replace("・","").replace("…","...").replace("∽","") \
-            .replace("。",".").replace("‥","..").replace("♪", "").replace("×", "")
-        
+        st = st.replace("ー","-").replace("、", ",").replace("…","...").replace("。",".").replace("‥","..")
         st = st.translate(self.table)
         
         st = st.lower()
@@ -287,8 +283,7 @@ class Play_w:
                     else:
                         in_t = self.rossita_to_roma[tu]
                 except:
-                    st = st[:i-1] + st[i+1:]
-                    i+=1
+                    st = st[:i] + st[i+1:]
                     continue
             
             if xtu:

@@ -3,19 +3,29 @@ import customtkinter as ctk
 import requests
 from bs4 import BeautifulSoup as bsp4
 from Play import Play_w
+import os
+from pathlib import Path
 
 song_list = []
 btn_list = []
 
 class Main():
     def __init__(self):
+        self.data_songs = []
+        os.makedirs("datas", exist_ok=True)
+        data_file = Path('datas/data.dat')
+        data_file.touch(exist_ok=True)
+        f = open(data_file)
+        with open(os.path.join("datas", "data.dat"), encoding="UTF-8") as f:
+            self.data_songs = f.readlines()
+        for i in range(len(self.data_songs)):
+            self.data_songs[i] = self.data_songs[i].split(",")
+
         self.width = 800
         self.height = 500
-        self.btn_list = []
-        self.popular_btn_list = []
-        self.song_list = []
-        self.popular_song_list = []
-        self.now_open_list = "search"
+        self.song_datas = [[[], []], [[], []], [[], []]]
+        self.choose_btns = []
+        self.now_open_list = 0
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
         self.root = CTk()
@@ -44,9 +54,12 @@ class Main():
         self.choose_frame = CTkFrame(self.root, fg_color="#202020", corner_radius=0, width = 725, height=30)
         self.choose_frame.propagate(False)
         self.search_frame_btn = CTkButton(self.choose_frame, text = "検索結果", width=80, height=30, font=self.main_font, \
-                                           corner_radius=0, border_width=4, fg_color="#404040", border_color="#404040", state="disabled", hover_color="#404040", command=lambda:self.Open_search_songs())
+                                           corner_radius=0, border_width=4, fg_color="#404040", border_color="#404040", state="disabled", hover_color="#404040", command=lambda:self.Open_list(0))
         self.popular_frame_btn = CTkButton(self.choose_frame, text = "人気の曲", width=80, height=30, font=self.main_font, \
-                                            corner_radius=0, border_width=4, fg_color="#2f2f2f", border_color="#404040", hover_color="#404040", command=lambda:self.Open_popular_songs())
+                                            corner_radius=0, border_width=4, fg_color="#2f2f2f", border_color="#404040", hover_color="#404040", command=lambda:self.Open_list(1))
+        self.history_frame_btn = CTkButton(self.choose_frame, text = "履歴", width=80, height=30, font=self.main_font, \
+                                            corner_radius=0, border_width=4, fg_color="#2f2f2f", border_color="#404040", hover_color="#404040", command=lambda:self.Open_list(2))
+        self.choose_btns = [self.search_frame_btn, self.popular_frame_btn, self.history_frame_btn]
 
         self.label.pack(side=ctk.LEFT)
         self.entry.pack(side=ctk.LEFT)
@@ -56,11 +69,14 @@ class Main():
         search_frame.pack(ipady = 12, ipadx = 12, pady = 20)
         self.search_frame_btn.pack(side=ctk.LEFT)
         self.popular_frame_btn.pack(side=ctk.LEFT)
+        self.history_frame_btn.pack(side=ctk.LEFT)
         self.choose_frame.pack()
         self.frame.pack()
 
         self.root.bind("<Configure>", self.Set_window_size)
         self.root.bind("<KeyPress>", self.Key_down)
+
+        self.root.protocol("WM_DELETE_WINDOW", self.Window_close)
         self.root.mainloop()
     
     def Set_window_size(self, event):
@@ -100,31 +116,25 @@ class Main():
             set_btn_height = 50
         self.frame.configure(width = set_width, height = set_height)
         self.choose_frame.configure(width = set_width + 26, height = set_btn_height)
-        self.search_frame_btn.configure(width = set_btn_width + 10, height = set_btn_height)
-        self.popular_frame_btn.configure(width = set_btn_width + 10, height = set_btn_height)
-        for i in range(len(self.btn_list)):
-            if i != len(self.btn_list) - 1:
-                self.btn_list[i][0].configure(width = set_width)
-                self.btn_list[i][1].configure(width = set_width)
-            else:
-                self.btn_list[i].configure(width = set_width)
-        for i in range(len(self.popular_btn_list)):
-            if i != len(self.popular_btn_list) - 1:
-                self.popular_btn_list[i][0].configure(width = set_width)
-                self.popular_btn_list[i][1].configure(width = set_width)
-            else:
-                self.popular_btn_list[i].configure(width = set_width)
+        for i in range(3):
+            self.choose_btns[i].configure(width = set_btn_width + 10, height = set_btn_height)
+            for j in range(len(self.song_datas[i][0])):
+                if j != len(self.song_datas[i][0]) - 1:
+                    self.song_datas[i][0][j][0].configure(width = set_width)
+                    self.song_datas[i][0][j][1].configure(width = set_width)
+                else:
+                    self.song_datas[i][0][j].configure(width = set_width)
 
     def Search(self):
-        self.Open_search_songs()
-        self.song_list = []
-        for i in range(len(self.btn_list)):
-            if i != len(self.btn_list) - 1:
-                self.btn_list[i][0].destroy()
-                self.btn_list[i][1].destroy()
+        self.Open_list(0)
+        self.song_datas[0][1] = []
+        for i in range(len(self.song_datas[0][0])):
+            if i != len(self.song_datas[0][0]) - 1:
+                self.song_datas[0][0][i][0].destroy()
+                self.song_datas[0][0][i][1].destroy()
             else:
-                self.btn_list[i].destroy()
-        self.btn_list = []
+                self.song_datas[0][0][i].destroy()
+        self.song_datas[0][0] = []
         tt = self.title_text.get()
         st = self.singer_text.get()
         url = ""
@@ -136,80 +146,58 @@ class Main():
             url = 'https://utaten.com/search?sort=popular_sort_asc&artist_name=' + st +'&title=' + tt
         else:
             return
-        self.set_songs(url, self.btn_list, self.song_list)
+        self.set_songs(url, 0)
     
     def Open_Song(self, i):
         def x():
-            if self.now_open_list == "search":
-                Play_w(self.song_list[i][0], self.song_list[i][1])
-            else:
-                Play_w(self.popular_song_list[i][0], self.popular_song_list[i][1])
+            sl = self.song_datas[self.now_open_list][1].copy()
+            k_u = sl[i][0]
+            t_t = sl[i][1]
+            s_t = sl[i][2].replace("\n", "")
+            for j in range(len(self.data_songs)):
+                if self.data_songs[j][0] == k_u:
+                    self.data_songs.pop(j)
+                    break
+            if len(self.data_songs) > 19:
+                self.data_songs.pop(19)
+            self.data_songs.insert(0, [k_u, t_t, s_t])
+
+            Play_w(sl[i][0], sl[i][1])
         return x
     
     def Key_down(self, event):
         key = event.keysym
         if key == "Return":
             self.Search()
-
-    def Open_popular_songs(self):
-        self.now_open_list = "popular"
-        self.search_frame_btn.configure(fg_color="#2f2f2f", state="normal")
-        self.popular_frame_btn.configure(fg_color="#404040", state="disabled")
-        for i in range(len(self.btn_list)):
-            if i != len(self.btn_list) - 1:
-                self.btn_list[i][0].grid_forget()
-                self.btn_list[i][1].grid_forget()
-            else:
-                self.btn_list[i].grid_forget()
-        if len(self.popular_btn_list) == 0:
-            url = "https://utaten.com/search?"
-            self.set_songs(url, self.popular_btn_list, self.popular_song_list)
-        else:
-            for i in range(len(self.popular_btn_list)):
-                if i != len(self.btn_list) - 1:
-                    self.popular_btn_list[i][0].grid(row = i * 2, column = 0)
-                    self.popular_btn_list[i][1].grid(row = i * 2 + 1, column = 0)
-                else:
-                    self.btn_list[i].grid(row = i * 2, column = 0)
-        
-
-    def Open_search_songs(self):
-        self.now_open_list = "search"
-        self.popular_frame_btn.configure(fg_color="#2f2f2f", state="normal")
-        self.search_frame_btn.configure(fg_color="#404040", state="disabled")
-        for i in range(len(self.popular_btn_list)):
-            if i != len(self.popular_btn_list) - 1:
-                self.popular_btn_list[i][0].grid_forget()
-                self.popular_btn_list[i][1].grid_forget()
-            else:
-                self.popular_btn_list[i].grid_forget()
-        for i in range(len(self.btn_list)):
-            if i != len(self.btn_list) - 1:
-                self.btn_list[i][0].grid(row = i * 2, column = 0)
-                self.btn_list[i][1].grid(row = i * 2 + 1, column = 0)
-            else:
-                self.btn_list[i].grid(row = i * 2, column = 0)
     
-    def set_songs(self, url, btn_list, song_list):
+    def set_songs(self, url, list_num=0):
         res = requests.get(url)
         soup = bsp4(res.text, "html.parser")
         element = soup.find("main")
         elements = element.find_all("p", class_="searchResult__title")
         elements2 = element.find_all("p", class_="searchResult__name")
-        set_width = self.width / 1.12
-        if set_width > 1100:
-            set_width = 1100
+        send_datas = []
         for i in range(len(elements)):
             k_u = str(elements[i].a.get('href'))
             t_t = str(elements[i].a.text).replace(" ", "").replace('\n', '')
-            s_t = str(elements2[i].a.text).replace(" ", "")
-            song_list.append([k_u, t_t])
+            s_t = str(elements2[i].a.text).replace(" ", "").replace('\n', '')
+            send_datas.append([k_u,t_t,s_t])
+        self.create_btn_canvas(send_datas, list_num)
+    
+    def create_btn_canvas(self, datas, list_num = 0):
+        set_width = self.width / 1.12
+        if set_width > 1100:
+            set_width = 1100
+        for i in range(len(datas)):
+            self.song_datas[list_num][1].append(datas[i])
+            t_t = datas[i][1]
+            s_t = datas[i][2].replace("\n", "")
             if len(t_t) > 47:
-                t_t = t_t[0:47] + "\n" + t_t[47:]
-            if len(s_t) > 47:
-                s_t = s_t[0:47] + "\n" + s_t[47:]
+                t_t = t_t[0:45] + "\n" +t_t[45:]
+            if len(s_t) > 45:
+                s_t = s_t[0:45] + "\n" + s_t[45:]
             btn = CTkButton(self.frame, 
-                             text= t_t + s_t,
+                             text = t_t + "\n" + s_t,
                              width = set_width,
                              command=self.Open_Song(i),
                              corner_radius=0,
@@ -220,12 +208,64 @@ class Main():
                             )
             btn.grid(row = i * 2, column = 0)
 
-            if i != len(elements) - 1:
+            if i != len(datas) - 1:
                 line_canvs = ctk.CTkCanvas(self.frame, width=set_width, height=5, highlightthickness=0, bg="#404040")
                 line_canvs.grid(row = i * 2 + 1, column = 0)
-                btn_list.append([btn, line_canvs])
+                self.song_datas[list_num][0].append([btn, line_canvs])
             else:
-                btn_list.append(btn)
+                self.song_datas[list_num][0].append(btn)
+    
+    def Open_list(self, list_num=0):
+        self.now_open_list = list_num
+        targets = []
+        if list_num == 0:
+            targets = [1, 2]
+        elif list_num == 1:
+            targets = [0, 2]
+        else:
+            targets = [0,1]
+        self.choose_btns[list_num].configure(fg_color="#404040", state="disabled")
+        for i in targets:
+            self.choose_btns[i].configure(fg_color="#2f2f2f", state="normal")
+        for i in range(3):
+            for j in range(len(self.song_datas[i][0])):
+                if i == list_num:
+                    if j != len(self.song_datas[i][0]) - 1:
+                        self.song_datas[i][0][j][0].grid(row = j * 2, column = 0)
+                        self.song_datas[i][0][j][1].grid(row = j * 2 + 1, column = 0)
+                    else:
+                        self.song_datas[i][0][j].grid(row = j * 2, column = 0)
+                else:
+                    if j != len(self.song_datas[i][0]) - 1:
+                        self.song_datas[i][0][j][0].grid_forget()
+                        self.song_datas[i][0][j][1].grid_forget()
+                    else:
+                        self.song_datas[i][0][j].grid_forget()
+        
+        if list_num == 1 and len(self.song_datas[1][0]) == 0:
+            url = "https://utaten.com/search?"
+            self.set_songs(url, 1)
+        
+        if list_num == 2:
+            self.song_datas[2][1] = []
+            for i in range(len(self.song_datas[2][0])):
+                if i != len(self.song_datas[2][0]) - 1:
+                    self.song_datas[2][0][i][0].destroy()
+                    self.song_datas[2][0][i][1].destroy()
+                else:
+                    self.song_datas[2][0][i].destroy()
+            self.song_datas[2][0] = []
+
+            self.create_btn_canvas(self.data_songs, 2)
+    
+    def Window_close(self):
+        with open("datas/data.dat", "w", encoding="UTF-8") as f:
+            for i in range(len(self.data_songs)):
+                self.data_songs[i] = ",".join(self.data_songs[i])
+                if not "\n" in self.data_songs[i]:
+                    self.data_songs[i] += "\n"
+            f.writelines(self.data_songs)
+            self.root.destroy()
 
 if __name__ == "__main__":
     main = Main()

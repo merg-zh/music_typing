@@ -12,6 +12,10 @@ class Main():
         self.width = 800
         self.height = 500
         self.btn_list = []
+        self.popular_btn_list = []
+        self.song_list = []
+        self.popular_song_list = []
+        self.now_open_list = "search"
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
         self.root = CTk()
@@ -37,13 +41,23 @@ class Main():
         self.entry2 = CTkEntry(search_frame, width=250, textvariable=self.singer_text, font=("Yu Gothic", 20))
         self.button = CTkButton(search_frame, text = "検索", width=40,command=lambda:self.Search(), font=self.main_font)
 
+        self.choose_frame = CTkFrame(self.root, fg_color="#202020", corner_radius=0, width = 725, height=30)
+        self.choose_frame.propagate(False)
+        self.search_frame_btn = CTkButton(self.choose_frame, text = "検索結果", width=80, height=30, font=self.main_font, \
+                                           corner_radius=0, border_width=4, fg_color="#404040", border_color="#404040", state="disabled", hover_color="#404040", command=lambda:self.Open_search_songs())
+        self.popular_frame_btn = CTkButton(self.choose_frame, text = "人気の曲", width=80, height=30, font=self.main_font, \
+                                            corner_radius=0, border_width=4, fg_color="#2f2f2f", border_color="#404040", hover_color="#404040", command=lambda:self.Open_popular_songs())
+
         self.label.pack(side=ctk.LEFT)
         self.entry.pack(side=ctk.LEFT)
         self.label2.pack(side=ctk.LEFT)
         self.entry2.pack(side=ctk.LEFT)
         self.button.pack(side=ctk.LEFT, padx = 10)
         search_frame.pack(ipady = 12, ipadx = 12, pady = 20)
-        self.frame.pack(pady = 50)
+        self.search_frame_btn.pack(side=ctk.LEFT)
+        self.popular_frame_btn.pack(side=ctk.LEFT)
+        self.choose_frame.pack()
+        self.frame.pack()
 
         self.root.bind("<Configure>", self.Set_window_size)
         self.root.bind("<KeyPress>", self.Key_down)
@@ -74,18 +88,35 @@ class Main():
 
         set_width = int(self.width / 1.14)
         set_height = int(self.height / 1.14)
+
+        set_btn_height = int(self.width / 26.6)
+        set_btn_width = int(self.width / 10)
         if set_width > 1100:
             set_width = 1100
+            set_btn_width = 110
         if set_height > 800:
             set_height = 800
+        if set_btn_height > 40:
+            set_btn_height = 50
         self.frame.configure(width = set_width, height = set_height)
+        self.choose_frame.configure(width = set_width + 26, height = set_btn_height)
+        self.search_frame_btn.configure(width = set_btn_width + 10, height = set_btn_height)
+        self.popular_frame_btn.configure(width = set_btn_width + 10, height = set_btn_height)
         for i in range(len(self.btn_list)):
             if i != len(self.btn_list) - 1:
                 self.btn_list[i][0].configure(width = set_width)
                 self.btn_list[i][1].configure(width = set_width)
             else:
                 self.btn_list[i].configure(width = set_width)
+        for i in range(len(self.popular_btn_list)):
+            if i != len(self.popular_btn_list) - 1:
+                self.popular_btn_list[i][0].configure(width = set_width)
+                self.popular_btn_list[i][1].configure(width = set_width)
+            else:
+                self.popular_btn_list[i].configure(width = set_width)
+
     def Search(self):
+        self.Open_search_songs()
         self.song_list = []
         for i in range(len(self.btn_list)):
             if i != len(self.btn_list) - 1:
@@ -105,6 +136,61 @@ class Main():
             url = 'https://utaten.com/search?sort=popular_sort_asc&artist_name=' + st +'&title=' + tt
         else:
             return
+        self.set_songs(url, self.btn_list, self.song_list)
+    
+    def Open_Song(self, i):
+        def x():
+            if self.now_open_list == "search":
+                Play_w(self.song_list[i][0], self.song_list[i][1])
+            else:
+                Play_w(self.popular_song_list[i][0], self.popular_song_list[i][1])
+        return x
+    
+    def Key_down(self, event):
+        key = event.keysym
+        if key == "Return":
+            self.Search()
+
+    def Open_popular_songs(self):
+        self.now_open_list = "popular"
+        self.search_frame_btn.configure(fg_color="#2f2f2f", state="normal")
+        self.popular_frame_btn.configure(fg_color="#404040", state="disabled")
+        for i in range(len(self.btn_list)):
+            if i != len(self.btn_list) - 1:
+                self.btn_list[i][0].grid_forget()
+                self.btn_list[i][1].grid_forget()
+            else:
+                self.btn_list[i].grid_forget()
+        if len(self.popular_btn_list) == 0:
+            url = "https://utaten.com/search?"
+            self.set_songs(url, self.popular_btn_list, self.popular_song_list)
+        else:
+            for i in range(len(self.popular_btn_list)):
+                if i != len(self.btn_list) - 1:
+                    self.popular_btn_list[i][0].grid(row = i * 2, column = 0)
+                    self.popular_btn_list[i][1].grid(row = i * 2 + 1, column = 0)
+                else:
+                    self.btn_list[i].grid(row = i * 2, column = 0)
+        
+
+    def Open_search_songs(self):
+        self.now_open_list = "search"
+        self.popular_frame_btn.configure(fg_color="#2f2f2f", state="normal")
+        self.search_frame_btn.configure(fg_color="#404040", state="disabled")
+        for i in range(len(self.popular_btn_list)):
+            if i != len(self.popular_btn_list) - 1:
+                self.popular_btn_list[i][0].grid_forget()
+                self.popular_btn_list[i][1].grid_forget()
+            else:
+                self.popular_btn_list[i].grid_forget()
+        for i in range(len(self.btn_list)):
+            if i != len(self.btn_list) - 1:
+                self.btn_list[i][0].grid(row = i * 2, column = 0)
+                self.btn_list[i][1].grid(row = i * 2 + 1, column = 0)
+            else:
+                self.btn_list[i].grid(row = i * 2, column = 0)
+    
+    def set_songs(self, url, btn_list, song_list):
         res = requests.get(url)
         soup = bsp4(res.text, "html.parser")
         element = soup.find("main")
@@ -117,7 +203,7 @@ class Main():
             k_u = str(elements[i].a.get('href'))
             t_t = str(elements[i].a.text).replace(" ", "").replace('\n', '')
             s_t = str(elements2[i].a.text).replace(" ", "")
-            self.song_list.append([k_u, t_t])
+            song_list.append([k_u, t_t])
             if len(t_t) > 47:
                 t_t = t_t[0:47] + "\n" + t_t[47:]
             if len(s_t) > 47:
@@ -137,19 +223,9 @@ class Main():
             if i != len(elements) - 1:
                 line_canvs = ctk.CTkCanvas(self.frame, width=set_width, height=5, highlightthickness=0, bg="#404040")
                 line_canvs.grid(row = i * 2 + 1, column = 0)
-                self.btn_list.append([btn, line_canvs])
+                btn_list.append([btn, line_canvs])
             else:
-                self.btn_list.append(btn)
-    
-    def Open_Song(self, i):
-        def x():
-            play = Play_w(self.song_list[i][0], self.song_list[i][1])
-        return x
-    
-    def Key_down(self, event):
-        key = event.keysym
-        if key == "Return":
-            self.Search()
+                btn_list.append(btn)
 
 if __name__ == "__main__":
     main = Main()

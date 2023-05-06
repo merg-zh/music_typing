@@ -121,7 +121,7 @@ class Play_w:
             if elems[i] == "<br>":
                 kari[0] = kari[0].translate(self.table)
                 kari[1] = kari[1].translate(self.table)
-                kari[2] = self.Hira_to_Roma(kari[2])
+                kari[2] = self.Hira_to_Roma(kari[2].replace("\u3000", " "))
                 self.kasi_list.append(kari)
                 kari = ["", "", ""]
             elif kan.search(elems[i]):
@@ -138,7 +138,7 @@ class Play_w:
                 kari[1] += elems[i]
                 kari[2] += jaconv.kata2hira(elems[i])
             i += 1
-        
+        print(self.kasi_list)
         self.typ_ctn = 0
         self.miss_typ_ctn = 0
         
@@ -251,7 +251,7 @@ class Play_w:
 
         st = st.replace("ー","-").replace("☆", "").replace("(","").replace(")","").replace("「","") \
             .replace("」","").replace("、", ",").replace("・","").replace("…","...").replace("∽","") \
-            .replace("。",".").replace("‥","..").replace("♪", "")
+            .replace("。",".").replace("‥","..").replace("♪", "").replace("×", "")
         
         st = st.translate(self.table)
         
@@ -305,7 +305,7 @@ class Play_w:
         self.typ_ctn += 1
         self.label4.configure(text = self.now_str)
         self.conb_label.configure(text = str(int(self.conb_label.cget("text")[0:-1]) + 1) + "x")
-        if self.now_str[0] == " ":
+        while self.now_str[0] == " ":
             self.label3.configure(text = self.label3.cget("text") + " ")
             self.now_str = self.now_str[1:]
     
@@ -388,6 +388,14 @@ class Play_w:
         self.label2.configure(text = "")
         self.label.configure(text = "")
         if len(self.kasi_list) == 0:
+            if self.max_continue == 0:
+                    self.max_continue = self.typ_ctn
+            dt = datetime.datetime.now()
+            now_time = dt.hour * 60 * 60 + dt.minute * 60 + dt.second
+            heikin = int(self.typ_ctn / (now_time - self.start_time - self.line_ctn * 0.5) * 10) / 10
+            self.show_text = ["タイプ数 - " + str(self.typ_ctn) + "　　ミスタイプ数 - " + str(self.miss_typ_ctn),
+                               "1秒あたり - " + str(heikin) + "　　正誤率 - " + str(int(self.typ_ctn / (self.miss_typ_ctn + self.typ_ctn) * 1000) / 10) + "％",
+                               "最大連続タイプ数 - " + str(self.max_continue) + "文字"]
             self.Finish()
         else:
             self.root.after(500, self.Show)
@@ -426,29 +434,15 @@ class Play_w:
             self.main_frame.pack()
             self.anim_c = 2
             self.root.after(1, self.Finish)
-        elif self.anim_c == 2:
-            new_line_canvas = ctk.CTkCanvas(self.main_frame, bg = "#2f2f2f", highlightthickness=0, width=self.main_frame.cget("width"), height=1)
-            new_line_canvas.pack()
-            new_label = ctk.CTkLabel(self.main_frame, text="タイプ数 - " + str(self.typ_ctn) + "　　ミスタイプ数 - " + str(self.miss_typ_ctn), anchor=ctk.CENTER, font=self.main_font, text_color="white")
+        elif self.anim_c >= 2 and self.anim_c != 5:
+            if self.anim_c == 2:
+                new_line_canvas = ctk.CTkCanvas(self.main_frame, bg = "#2f2f2f", highlightthickness=0, width=self.main_frame.cget("width"), height=1)
+                new_line_canvas.pack()
+            else:
+                line_canvs = ctk.CTkCanvas(self.main_frame, bg = "#404040", highlightthickness=0, width=int(self.main_frame.cget("width") * 0.7), height=5)
+                line_canvs.pack()
+            new_label = ctk.CTkLabel(self.main_frame, text=self.show_text[self.anim_c - 2], anchor=ctk.CENTER, font=self.main_font, text_color="white")
             new_label.pack(pady = 20)
-            self.anim_c = 3
+            self.anim_c += 1
             self.root.after(1000, self.Finish)
-        elif self.anim_c == 3:
-            self.line_canvs = ctk.CTkCanvas(self.main_frame, bg = "#404040", highlightthickness=0, width=int(self.main_frame.cget("width") * 0.7), height=5)
-            self.line_canvs.pack()
-            dt = datetime.datetime.now()
-            now_time = dt.hour * 60 * 60 + dt.minute * 60 + dt.second
-            heikin = int(self.typ_ctn / (now_time - self.start_time - self.line_ctn * 0.5) * 10) / 10
-            new_label = ctk.CTkLabel(self.main_frame, text="1秒あたり - " + str(heikin) + "　　正誤率 - " + str(int(self.typ_ctn / (self.miss_typ_ctn + self.typ_ctn) * 1000) / 10) + "％", anchor=ctk.CENTER, font=self.main_font, text_color="white")
-            new_label.pack(pady = 20)
-            self.anim_c = 4
-            self.root.after(1000, self.Finish)
-        elif self.anim_c == 4:
-            self.line_canvs2 = ctk.CTkCanvas(self.main_frame, bg = "#404040", highlightthickness=0, width=int(self.main_frame.cget("width") * 0.7), height=5)
-            self.line_canvs2.pack()
-            if self.max_continue == 0:
-                self.max_continue = self.typ_ctn
-            new_label = ctk.CTkLabel(self.main_frame, text="最大連続タイプ数 - " + str(self.max_continue) + "文字", anchor=ctk.CENTER, font=self.main_font, text_color="white")
-            new_label.pack(pady = 20)
-            self.anim_c = 5
         return

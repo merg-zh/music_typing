@@ -92,7 +92,6 @@ class Play_w:
         pygame.mixer.init()
         self.true_se = pygame.mixer.Sound(self.resource_path("typ.mp3"))
         self.false_se = pygame.mixer.Sound(self.resource_path("false.mp3"))
-
         res = requests.get("https://utaten.com" + url)
         soup = bsp4(res.text, "html.parser")
         elem = str(soup.find("div", class_="hiragana"))[22:-7].strip()
@@ -267,6 +266,8 @@ class Play_w:
             if st[i] == "っ":
                 xtu = True
                 i+=1
+                if i == len(st):
+                    
                 continue
 
             if len(st) - 1 > i:

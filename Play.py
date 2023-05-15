@@ -267,7 +267,8 @@ class Play_w:
                 xtu = True
                 i+=1
                 if i == len(st):
-                    
+                    st = st[:i - 1] + "xtu"
+                    break
                 continue
 
             if len(st) - 1 > i:

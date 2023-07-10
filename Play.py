@@ -61,7 +61,8 @@ class Play_w:
             "comma":",","exclam":"!","period":",","question":"?",
             "minus":"-","apostrophe":"'","ampersand":"&","numbersign":"#",
             "dollar":"$","percent":"%","equal":"=","asciitilde":"~",
-            "period":".", "quoteright":"'"
+            "period":".", "quoteright":"'", "quotedbl":'\\', "parenleft":"(",
+            "parenright":")"
         }
 
         self.table = str.maketrans({
@@ -145,7 +146,7 @@ class Play_w:
         ctk.set_appearance_mode("dark") 
         ctk.set_default_color_theme("blue")
         self.root = ctk.CTk()
-        self.root.title(title)
+        self.root.title("play")
         self.root.geometry("800x400")
         self.root.minsize(width=800, height=400)
         self.root.configure(fg_color="#202020")
@@ -319,6 +320,9 @@ class Play_w:
 
     def Key_down(self, e):
         key = e.keysym
+
+        print(key)
+
         if key == "space" and self.start_status == 0:
             self.start_status = 1
             self.count()
@@ -417,7 +421,7 @@ class Play_w:
             self.main_frame.configure(width = self.main_frame.cget("width") - self.imx / 150)
             self.sub_frame.configure(width = self.main_frame.cget("width") - self.imx / 150)
             self.line_canvs2.configure(width = self.main_frame.cget("width") - self.imx / 150)
-            if self.main_frame.cget("width") == 0:
+            if self.main_frame.cget("width") < 10:
                 self.anim_c = 1
                 self.main_frame.destroy()
                 self.sub_frame.destroy()

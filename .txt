@@ -1,6 +1,7 @@
 pyinstaller -F <.py file> --collect-all customtkinter
 pyinstaller -F Home.py --onefile --noconsole --collect-all customtkinter
 pyinstaller Home.spec
+py -m PyInstaller Home.spec
 
 self.true_se = pygame.mixer.Sound(self.resource_path("typ.mp3"))
 self.false_se = pygame.mixer.Sound(self.resource_path("false.mp3"))

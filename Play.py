@@ -61,7 +61,7 @@ class Play_w:
             "comma":",","exclam":"!","period":",","question":"?",
             "minus":"-","apostrophe":"'","ampersand":"&","numbersign":"#",
             "dollar":"$","percent":"%","equal":"=","asciitilde":"~",
-            "period":".", "quoteright":"'", "quotedbl":'\\', "parenleft":"(",
+            "period":".", "quoteright":"'", "quotedbl":'\"', "parenleft":"(",
             "parenright":")"
         }
 
